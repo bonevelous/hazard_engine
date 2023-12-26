@@ -1,0 +1,4 @@
+build/
+hazbuild
+*.o
+*.a
