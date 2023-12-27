@@ -1,11 +1,15 @@
 cmake_minimum_required(VERSION 3.28)
-file(GLOB SOURCES ./src/*.c)
+project(hazard_engine)
 
-project(hazbuild)
+set(HAZBUILD_SRC ./src/main.c ./src/hazeng.c ./src/hazbuild.c)
+set(HARVHAZ1_SRC ./src/main.c ./src/hazeng.c ./src/harvhaz1.c)
 
 find_package(SDL2 REQUIRED)
 
 include_directories(${SDL2_INCLUDE_DIRS})
 
-add_executable(${CMAKE_PROJECT_NAME} ${SOURCES})
-target_link_libraries(${CMAKE_PROJECT_NAME} ${SDL2_LIBRARIES})
+add_executable(harvhaz1 ${HARVHAZ1_SRC})
+target_link_libraries(harvhaz1 ${SDL2_LIBRARIES})
+
+add_executable(hazbuild ${HAZBUILD_SRC})
+target_link_libraries(hazbuild ${SDL2_LIBRARIES})

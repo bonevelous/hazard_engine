@@ -28,11 +28,6 @@ hazard_engine haz = {
 	1
 };
 
-char level[MAPW][MAPH];
-
-SDL_Point tsize = {16, 16};
-SDL_Rect playpos = {0, 0, 16, 16};
-
 int haz_init() {
 	char cwd[PATH_MAX];
 	if (getcwd(cwd, sizeof(cwd)) != NULL) {
@@ -72,45 +67,13 @@ int haz_init() {
 	return 0;
 }
 
-int haz_loadLevel(const char *filename) {
-	FILE *_file = NULL;
-
-	_file = fopen (filename, "r");
-	if (_file == NULL) {
-		printf("\x1b[1;31mError in fopen():\x1b[0m "
-			"\x1b[0;31m%s is corrupt or absent.\x1b[0m\n", filename);
-		return 1;
-	}
-
-	for (int i = 0; i < MAPW; i++) {
-		for (int j = 0; j < MAPH; j++) {
-			int ch = '\n';
-			while (ch == '\n') ch = fgetc(_file);
-			if (ch == 'O') {
-				playpos.x = tsize.x * j;
-				playpos.y = tsize.y * i;
-				ch = ' ';
-			}
-
-			level[i][j] = ch;
-			printf("%c", level[i][j]);
-		}
-		printf("\n");
-	}
-
-	fclose(_file);
-	_file = NULL;
-
-	return 0;
-}
-
 int haz_live() { return haz.live; }
 
 void haz_eng() {
 	SDL_Event event;
 	if (SDL_PollEvent(&event)) haz_pollEv(&event);
 
-	haz_render();
+	haz_render(30000000);
 }
 
 void haz_pollEv(SDL_Event *_ev) {
@@ -136,30 +99,17 @@ void haz_pollEv(SDL_Event *_ev) {
 	}
 }
 
-void haz_renderLevel() {
-	SDL_Rect _out = {0, 0, tsize.x, tsize.y};
+void haz_render(int fps) {
+	for (int i = 0; i < fps; i++) {
+		if (i == 0) {
+			SDL_SetRenderDrawColor(haz.r, 0x00, 0x00, 0x00, 0xFF);
+			SDL_RenderClear(haz.r);
 
-	for (int i = 0; i < MAPW; i++) {
-		_out.x = (tsize.x * i);
-		for (int j = 0; j < MAPH; j++) {
-			_out.y = (tsize.y * j);
-			SDL_SetRenderDrawColor(haz.r, 0xFF, 0xFF, 0xFF, 0xFF);
+			haz_renderLevel(haz.r);
 
-			if (level[i][j] == '#') SDL_RenderFillRect(haz.r, &_out);
+			SDL_RenderPresent(haz.r);
 		}
 	}
-
-	SDL_SetRenderDrawColor(haz.r, 0x00, 0xAA, 0x00, 0xFF);
-	SDL_RenderFillRect(haz.r, &playpos);
-}
-
-void haz_render() {
-	SDL_SetRenderDrawColor(haz.r, 0x00, 0x00, 0x00, 0xFF);
-	SDL_RenderClear(haz.r);
-
-	haz_renderLevel();
-
-	SDL_RenderPresent(haz.r);
 }
 
 void haz_quit() {

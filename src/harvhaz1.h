@@ -15,45 +15,12 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef HAZENG_H
-#define HAZENG_H
+#ifndef HARVHAZ_ONE_H
+#define HARVHAZ_ONE_H
 
-#include <stdio.h>
-#include <string.h>
-#include <time.h>
+#define HSPEED 8
+#define VSPEED 8
 
-#include <limits.h>
-#include <unistd.h>
-#include <getopt.h>
+void movePlayer();
 
-#include <SDL.h>
-
-#define MAPW 16
-#define MAPH 16
-
-typedef struct hazard_engine {
-	//char *error;
-	SDL_Window *w;
-	SDL_Renderer *r;
-	char *t;
-	int p;
-	SDL_Rect g;
-	char wf;
-	char rf;
-	int live;
-} hazard_engine;
-
-int haz_init();
-int haz_live();
-void haz_eng();
-//char *haz_getError();
-
-int haz_loadLevel(const char *filename);
-
-void haz_pollEv(SDL_Event *_ev);
-void haz_render(int fps);
-void haz_renderLevel(SDL_Renderer *ren);
-
-void haz_quit();
-
-#endif //HAZENG_H
+#endif //HARVHAZ_ONE_H
