@@ -20,14 +20,22 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
+
+#include <limits.h>
+#include <unistd.h>
+#include <getopt.h>
 
 #include <SDL.h>
+
+#define MAPW 16
+#define MAPH 16
 
 typedef struct hazard_engine {
 	//char *error;
 	SDL_Window *w;
 	SDL_Renderer *r;
-	const char *t;
+	char *t;
 	int p;
 	SDL_Rect g;
 	char wf;

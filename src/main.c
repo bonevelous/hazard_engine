@@ -20,7 +20,7 @@
 int main (int argc, char **argv) {
 
 	if (haz_init()) {
-		printf("Failed to start Harvey Hazard.\n");
+		printf("\x1b[0;31mFailed to start Harvey Hazard.\x1b[0m\n");
 		return 1;
 	}
 
