@@ -19,6 +19,7 @@
 #define HAZENG_H
 
 #include <stdio.h>
+#include <stdbool.h>
 #include <string.h>
 #include <time.h>
 
@@ -32,7 +33,6 @@
 #define MAPH 16
 
 typedef struct hazard_engine {
-	//char *error;
 	SDL_Window *w;
 	SDL_Renderer *r;
 	char *t;
@@ -40,15 +40,28 @@ typedef struct hazard_engine {
 	SDL_Rect g;
 	char wf;
 	char rf;
-	int live;
+	bool live;
 } hazard_engine;
 
-int haz_init();
-int haz_live();
+typedef struct haz_actor {
+	SDL_Rect g;
+	//SDL_Point acc;
+	SDL_Point vel;
+	SDL_Point spd;
+	bool col;
+} haz_actor;
+
+int haz_init(int argc, char **argv);
+bool haz_live();
 void haz_eng();
-//char *haz_getError();
+
+void haz_setDebug();
+bool haz_getDebug();
 
 int haz_loadLevel(const char *filename);
+
+void haz_activeActor(haz_actor *_act);
+void haz_collision(haz_actor *guest, SDL_Rect host);
 
 void haz_pollEv(SDL_Event *_ev);
 void haz_render(int fps);

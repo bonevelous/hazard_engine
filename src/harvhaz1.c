@@ -16,9 +16,13 @@
  */
 
 #include "hazeng.h"
-#include "harvhaz1.h"
 
-SDL_Rect playpos = {0, 0, 16, 16};
+haz_actor harv = {
+	{0, 0, 16, 16},
+	{0, 0},
+	{8, 8},
+	false
+};
 
 SDL_Point tsize = {16, 16};
 char level[MAPW][MAPH];
@@ -38,8 +42,8 @@ int haz_loadLevel(const char *filename) {
 			int ch = '\n';
 			while (ch == '\n') ch = fgetc(_file);
 			if (ch == 'O') {
-				playpos.x = tsize.x * j;
-				playpos.y = tsize.y * i;
+				harv.g.x = tsize.x * j;
+				harv.g.y = tsize.y * i;
 				ch = ' ';
 			}
 
@@ -53,20 +57,6 @@ int haz_loadLevel(const char *filename) {
 	return 0;
 }
 
-void movePlayer() {
-	const uint8_t *keystate = SDL_GetKeyboardState(NULL);
-
-	SDL_Point trupos = {playpos.x / tsize.x, playpos.y / tsize.y};
-
-	if (trupos.x < 0) playpos.x = (MAPW * tsize.x);
-	if (trupos.x >= MAPW) playpos.x = -tsize.x;
-
-	if (keystate[SDL_SCANCODE_LEFT]) playpos.x -= HSPEED;
-	if (keystate[SDL_SCANCODE_RIGHT]) playpos.x += HSPEED;
-	if (keystate[SDL_SCANCODE_UP]) playpos.y -= VSPEED;
-	if (keystate[SDL_SCANCODE_DOWN]) playpos.y += VSPEED;
-}
-
 void haz_renderLevel(SDL_Renderer *ren) {
 	SDL_Rect _out = {0, 0, tsize.x, tsize.y};
 
@@ -76,12 +66,15 @@ void haz_renderLevel(SDL_Renderer *ren) {
 			_out.y = (tsize.y * j);
 			SDL_SetRenderDrawColor(ren, 0xFF, 0xFF, 0xFF, 0xFF);
 
-			if (level[j][i] == '#') SDL_RenderFillRect(ren, &_out);
+			if (level[j][i] == '#') {
+				SDL_RenderFillRect(ren, &_out);
+				haz_collision(&harv, _out);
+			}
 		}
 	}
 
-	movePlayer();
+	haz_activeActor(&harv);
 
 	SDL_SetRenderDrawColor(ren, 0x00, 0xAA, 0x00, 0xFF);
-	SDL_RenderFillRect(ren, &playpos);
+	SDL_RenderFillRect(ren, &harv.g);
 }

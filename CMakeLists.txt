@@ -1,5 +1,10 @@
 cmake_minimum_required(VERSION 3.28)
-project(hazard_engine)
+project(hazard_engine VERSION 1.0)
+
+set(CMAKE_C_STANDARD 17)
+set(CMAKE_C_STANDARD_REQUIRED true)
+
+configure_file(./src/cmake_macros.h.in ../src/cmake_macros.h)
 
 set(HAZBUILD_SRC ./src/main.c ./src/hazeng.c ./src/hazbuild.c)
 set(HARVHAZ1_SRC ./src/main.c ./src/hazeng.c ./src/harvhaz1.c)

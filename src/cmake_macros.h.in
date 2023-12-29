@@ -15,12 +15,10 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef HARVHAZ_ONE_H
-#define HARVHAZ_ONE_H
+#ifndef CMAKE_MACROS_H
+#define CMAKE_MACROS_H
 
-#define HSPEED 8
-#define VSPEED 8
+#define hazard_engine_VERSION_MAJOR @hazard_engine_VERSION_MAJOR@
+#define hazard_engine_VERSION_MINOR @hazard_engine_VERSION_MINOR@
 
-void movePlayer();
-
-#endif //HARVHAZ_ONE_H
+#endif //CMAKE_MACROS_H
