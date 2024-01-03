@@ -16,16 +16,18 @@
  */
 
 #include "hazeng.h"
+#include "haz_actor.h"
 
 haz_actor harv = {
-	{0, 0, 16, 16},
+	{0, 0, 16, 32},
+	{1, 1},
 	{0, 0},
 	{8, 8},
-	false
+	{false, false, false, false}
 };
 
 SDL_Point tsize = {16, 16};
-char level[MAPW][MAPH];
+SDL_Rect testrect = {64, 256, 48, 48};
 
 int haz_loadLevel(const char *filename) {
 	FILE *_file = NULL;
@@ -37,17 +39,19 @@ int haz_loadLevel(const char *filename) {
 		return 1;
 	}
 
+	tsize = get_tsize();
+
 	for (int i = 0; i < MAPW; i++) {
 		for (int j = 0; j < MAPH; j++) {
 			int ch = '\n';
 			while (ch == '\n') ch = fgetc(_file);
 			if (ch == 'O') {
 				harv.g.x = tsize.x * j;
-				harv.g.y = tsize.y * i;
+				harv.g.y = tsize.y * i - 16;
 				ch = ' ';
 			}
 
-			level[i][j] = ch;
+			haz_setTile(ch, i, j);
 		}
 	}
 
@@ -66,14 +70,19 @@ void haz_renderLevel(SDL_Renderer *ren) {
 			_out.y = (tsize.y * j);
 			SDL_SetRenderDrawColor(ren, 0xFF, 0xFF, 0xFF, 0xFF);
 
-			if (level[j][i] == '#') {
+			if (haz_getTile(j, i) == '#') {
 				SDL_RenderFillRect(ren, &_out);
-				haz_collision(&harv, _out);
 			}
 		}
 	}
 
-	haz_activeActor(&harv);
+	haz_collision(&harv, testrect);
+	haz_eightDirMov(&harv);
+	SDL_Rect winrect = haz_getWinGeom();
+	haz_containInRect(&harv, winrect);
+
+	SDL_SetRenderDrawColor(ren, 0x55, 0x55, 0xff, 0xFF);
+	SDL_RenderFillRect(ren, &testrect);
 
 	SDL_SetRenderDrawColor(ren, 0x00, 0xAA, 0x00, 0xFF);
 	SDL_RenderFillRect(ren, &harv.g);

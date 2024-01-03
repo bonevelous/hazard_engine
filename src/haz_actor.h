@@ -15,43 +15,42 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef HAZ_ENTITY_H
-#define HAZ_ENTITY_H
+#ifndef HAZ_ACTOR_H
+#define HAZ_ACTOR_H
 
-#include <stdio.h>
+#include <stdbool.h>
 #include <SDL.h>
 
-#define MAX_COMPS 128
+#include "hazeng.h"
 
-typedef struct speed {
-	int entity_id;
-	int x;
-	int y;
-} speed;
+#define MAPW 32
+#define MAPH 32
 
-typedef struct veloc {
-	int entity_id;
-	int x;
-	int y;
-} veloc;
+/*typedef struct haz_geometry {
+	int xmin;
+	int ymin;
+	int xmax;
+	int ymax;
+} haz_geometry;*/
 
-/*typedef struct accel {
-	int entity_id;
-	int x;
-	int y;
-} accel;*/
+typedef struct haz_collider {
+	bool lcol;
+	bool tcol;
+	bool rcol;
+	bool bcol;
+} haz_collider;
 
-typedef struct component_lists {
-	speed speed_comps[MAX_COMPS];
-	veloc veloc_comps[MAX_COMPS];
-	//accel accel_comps[MAX_COMPS];
-	int total_speed_comps;
-	int total_veloc_comps;
-} component_lists;
+typedef struct haz_actor {
+	SDL_Rect g;
+	SDL_Point acc;
+	SDL_Point vel;
+	SDL_Point spd;
+	haz_collider col;
+} haz_actor;
 
-typedef struct entity {
-	bool active;
+void haz_eightDirMov(haz_actor *_act);
+void haz_physics(haz_actor *_act);
+void haz_collision(haz_actor *guest, SDL_Rect host);
+void haz_containInRect(haz_actor *guest, SDL_Rect host);
 
-} entity;
-
-#endif //HAZ_ENTITY_H
+#endif //HAZ_ACTOR_H

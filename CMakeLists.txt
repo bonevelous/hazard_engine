@@ -7,7 +7,7 @@ set(CMAKE_C_STANDARD_REQUIRED true)
 configure_file(./src/cmake_macros.h.in ../src/cmake_macros.h)
 
 set(HAZBUILD_SRC ./src/main.c ./src/hazeng.c ./src/hazbuild.c)
-set(HARVHAZ1_SRC ./src/main.c ./src/hazeng.c ./src/harvhaz1.c)
+set(HARVHAZ1_SRC ./src/main.c ./src/hazeng.c ./src/harvhaz1.c ./src/haz_actor.c)
 
 find_package(SDL2 REQUIRED)
 

@@ -25,9 +25,11 @@ hazard_engine haz = {
 	{0, 0, 800, 600},
 	SDL_WINDOW_RESIZABLE,
 	SDL_RENDERER_ACCELERATED,
+	{16, 16},
 	true
 };
 
+char level[MAPW][MAPH];
 bool debug = false;
 
 int haz_init(int argc, char **argv) {
@@ -71,10 +73,13 @@ int haz_init(int argc, char **argv) {
 	return 0;
 }
 
-bool haz_live() { return haz.live; }
-
+void haz_setTile(char _ch, int x, int y) { level[x][y] = _ch; }
 void haz_setDebug() { debug = !debug; }
+char haz_getTile(int x, int y) { return level[x][y]; }
+bool haz_live() { return haz.live; }
 bool haz_getDebug() { return debug; }
+SDL_Rect haz_getWinGeom() { return haz.g; }
+SDL_Point get_tsize() { return haz.tsize; }
 
 void haz_eng() {
 	SDL_Event event;
@@ -104,46 +109,6 @@ void haz_pollEv(SDL_Event *_ev) {
 		default:
 			break;
 	}
-}
-
-void haz_activeActor(haz_actor *_act) {
-	const uint8_t *keystate = SDL_GetKeyboardState(NULL);
-
-	bool movl = (keystate[SDL_SCANCODE_LEFT]) ? true : false;
-	bool movr = (keystate[SDL_SCANCODE_RIGHT]) ? true : false;
-	bool movu = (keystate[SDL_SCANCODE_UP]) ? true : false;
-	bool movd = (keystate[SDL_SCANCODE_DOWN]) ? true : false;
-
-	if (movl) _act->vel.x = -_act->spd.x;
-	if (movr) _act->vel.x = _act->spd.x;
-	if (!movl && !movr) _act->vel.x = 0;
-	if (movu) _act->vel.y = -_act->spd.y;
-	if (movd) _act->vel.y = _act->spd.y;
-	if (!movu && !movd) _act->vel.y = 0;
-
-	_act->g.x += _act->vel.x;
-	if (_act->col) _act->g.x -= _act->vel.x;
-	_act->g.y += _act->vel.y;
-	if (_act->col) _act->g.y -= _act->vel.y;
-
-	if (_act->g.x < 0) _act->g.x = 0;
-	if (_act->g.x > haz.g.w - _act->g.w) _act->g.x = haz.g.w - _act->g.w;
-	if (_act->g.y < 0) _act->g.y = 0;
-	if (_act->g.y > haz.g.h - _act->g.h) _act->g.y = haz.g.h - _act->g.h;
-}
-
-void haz_collision(haz_actor *guest, SDL_Rect host) {
-	int g_l = guest->g.x;// + guest->vel.x;
-	int g_t = guest->g.y;// + guest->vel.y;
-	int g_r = g_l + guest->g.w;
-	int g_b = g_t + guest->g.h;
-
-	int h_l = host.x;
-	int h_t = host.y;
-	int h_r = host.x + host.w;
-	int h_b = host.y + host.h;
-
-	guest->col = (g_l > h_r || g_r < h_l || g_t > h_b || g_b < h_t) ? false : true;
 }
 
 void haz_render(int fps) {

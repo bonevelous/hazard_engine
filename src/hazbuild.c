@@ -18,8 +18,7 @@
 #include "hazeng.h"
 #include "hazbuild.h"
 
-SDL_Point tsize = {16, 16};
-char level[MAPW][MAPH];
+SDL_Point tsize;
 
 int haz_loadLevel(const char *filename) {
 	FILE *_file = NULL;
@@ -31,12 +30,14 @@ int haz_loadLevel(const char *filename) {
 		return 1;
 	}
 
+	tsize = get_tsize();
+
 	for (int i = 0; i < MAPW; i++) {
 		for (int j = 0; j < MAPH; j++) {
 			int ch = '\n';
 			while (ch == '\n') ch = fgetc(_file);
 
-			level[i][j] = ch;
+			haz_setTile(ch, i, j);
 		}
 	}
 
@@ -69,7 +70,7 @@ void haz_renderLevel(SDL_Renderer *ren) {
 		for (int j = 0; j < MAPH; j++) {
 			_out.y = (tsize.y * j);
 
-			hb_renderMap(ren, level[j][i], &_out);
+			hb_renderMap(ren, haz_getTile(j, i), &_out);
 		}
 	}
 }

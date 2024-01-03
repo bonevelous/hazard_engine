@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
+#include <math.h>
 #include <time.h>
 
 #include <limits.h>
@@ -29,8 +30,8 @@
 
 #include <SDL.h>
 
-#define MAPW 16
-#define MAPH 16
+#define MAPW 32
+#define MAPH 32
 
 typedef struct hazard_engine {
 	SDL_Window *w;
@@ -40,16 +41,9 @@ typedef struct hazard_engine {
 	SDL_Rect g;
 	char wf;
 	char rf;
+	SDL_Point tsize;
 	bool live;
 } hazard_engine;
-
-typedef struct haz_actor {
-	SDL_Rect g;
-	//SDL_Point acc;
-	SDL_Point vel;
-	SDL_Point spd;
-	bool col;
-} haz_actor;
 
 int haz_init(int argc, char **argv);
 bool haz_live();
@@ -57,15 +51,17 @@ void haz_eng();
 
 void haz_setDebug();
 bool haz_getDebug();
+SDL_Rect haz_getWinGeom();
 
 int haz_loadLevel(const char *filename);
-
-void haz_activeActor(haz_actor *_act);
-void haz_collision(haz_actor *guest, SDL_Rect host);
+void haz_setTile(char _ch, int x, int y);
+char haz_getTile(int x, int y);
 
 void haz_pollEv(SDL_Event *_ev);
 void haz_render(int fps);
 void haz_renderLevel(SDL_Renderer *ren);
+
+SDL_Point get_tsize();
 
 void haz_quit();
 
