@@ -78,6 +78,7 @@ void haz_renderLevel(SDL_Renderer *ren) {
 
 	haz_collision(&harv, testrect);
 	haz_eightDirMov(&harv);
+	//haz_gameConMov(&harv);
 	SDL_Rect winrect = haz_getWinGeom();
 	haz_containInRect(&harv, winrect);
 

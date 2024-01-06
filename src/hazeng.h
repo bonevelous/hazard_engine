@@ -34,6 +34,7 @@
 #define MAPH 32
 
 typedef struct hazard_engine {
+	int initf;
 	SDL_Window *w;
 	SDL_Renderer *r;
 	char *t;
@@ -43,7 +44,15 @@ typedef struct hazard_engine {
 	char rf;
 	SDL_Point tsize;
 	bool live;
+	bool debug;
 } hazard_engine;
+
+typedef struct haz_geometry {
+	int x1;
+	int y1;
+	int x2;
+	int y2;
+} haz_geometry;
 
 int haz_init(int argc, char **argv);
 bool haz_live();
@@ -53,11 +62,12 @@ void haz_setDebug();
 bool haz_getDebug();
 SDL_Rect haz_getWinGeom();
 
+SDL_GameController *haz_findController();
 int haz_loadLevel(const char *filename);
 void haz_setTile(char _ch, int x, int y);
 char haz_getTile(int x, int y);
 
-void haz_pollEv(SDL_Event *_ev);
+void haz_pollEv();
 void haz_render(int fps);
 void haz_renderLevel(SDL_Renderer *ren);
 

@@ -26,18 +26,11 @@
 #define MAPW 32
 #define MAPH 32
 
-/*typedef struct haz_geometry {
-	int xmin;
-	int ymin;
-	int xmax;
-	int ymax;
-} haz_geometry;*/
-
 typedef struct haz_collider {
-	bool lcol;
-	bool tcol;
-	bool rcol;
-	bool bcol;
+	bool l;
+	bool t;
+	bool r;
+	bool b;
 } haz_collider;
 
 typedef struct haz_actor {
@@ -48,9 +41,10 @@ typedef struct haz_actor {
 	haz_collider col;
 } haz_actor;
 
-void haz_eightDirMov(haz_actor *_act);
-void haz_physics(haz_actor *_act);
-void haz_collision(haz_actor *guest, SDL_Rect host);
-void haz_containInRect(haz_actor *guest, SDL_Rect host);
+void haz_eightDirMov(haz_actor *act);
+//void haz_gameConMov(haz_actor *act);
+void haz_physics(haz_actor *act);
+void haz_collision(haz_actor *act, SDL_Rect host);
+void haz_containInRect(haz_actor *act, SDL_Rect host);
 
 #endif //HAZ_ACTOR_H
