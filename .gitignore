@@ -2,3 +2,5 @@ build/
 hazbuild
 *.o
 *.a
+src/__scratch__
+src/cmake_macros.h

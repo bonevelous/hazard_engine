@@ -16,7 +16,7 @@
  */
 
 #include "hazeng.h"
-#include "cmake_macros.h"
+#include "cmake_h/cmake_macros.h"
 
 static struct option longopt[] = {
 	{"help", 0, 0, 'h'},

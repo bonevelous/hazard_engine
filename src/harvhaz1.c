@@ -23,7 +23,7 @@ haz_actor harv = {
 	{1, 1},
 	{0, 0},
 	{8, 8},
-	{false, false, false, false}
+	{true, true, true, true}
 };
 
 SDL_Point tsize = {16, 16};
@@ -76,9 +76,8 @@ void haz_renderLevel(SDL_Renderer *ren) {
 		}
 	}
 
-	haz_collision(&harv, testrect);
-	haz_eightDirMov(&harv);
-	//haz_gameConMov(&harv);
+	haz_solidWall(&harv, testrect);
+	haz_eightDirMov(&harv, 8, 8);
 	SDL_Rect winrect = haz_getWinGeom();
 	haz_containInRect(&harv, winrect);
 

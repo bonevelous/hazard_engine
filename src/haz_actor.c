@@ -18,162 +18,67 @@
 #include "hazeng.h"
 #include "haz_actor.h"
 
-void haz_collision(haz_actor *act, SDL_Rect host) {
-	haz_geometry a_g = {
-		act->g.x,
-		act->g.y,
-		act->g.x + act->g.w - 1,
-		act->g.y + act->g.h - 1
-	};
+bool haz_collision(haz_actor *act, SDL_Rect host) {
+	haz_geom ag = {act->g.x, act->g.y, act->g.x + act->g.w, act->g.y + act->g.h};
+	haz_geom hg = {host.x, host.y, host.x + host.w, host.y + host.h};
 
-	haz_geometry h_g = {
-		host.x,
-		host.y,
-		host.x + host.w - 1,
-		host.y + host.h - 1
-	};
-
-	bool hrange = (a_g.y1 > h_g.y2 || a_g.y2 < h_g.y1) ? false : true;
-	bool vrange = (a_g.x1 > h_g.x2 || a_g.x2 < h_g.x1) ? false : true;
-
-	haz_geometry a_t = {
-		a_g.x1,
-		a_g.y1,
-		a_g.x2,
-		act->g.y + (act->g.h / 2) - 1
-	};
-
-	haz_geometry a_b = {
-		a_g.x1,
-		act->g.y + (act->g.h / 2),
-		a_g.x2,
-		act->g.y + act->g.h - 1
-	};
-
-	haz_geometry a_l = {
-		a_g.x1,
-		a_g.y1,
-		act->g.x + (act->g.w / 2) - 1,
-		a_g.y2
-	};
-
-	haz_geometry a_r = {
-		act->g.x + (act->g.w / 2),
-		a_g.y1,
-		act->g.x + act->g.w - 1,
-		a_g.y2
-	};
-
-	haz_geometry h_t = {
-		h_g.x1,
-		h_g.y1,
-		h_g.x2,
-		host.y + (host.h / 2) - 1
-	};
-
-	haz_geometry h_b = {
-		h_g.x1,
-		host.y + (host.h / 2),
-		h_g.x2,
-		host.y + host.h - 1
-	};
-
-	haz_geometry h_l = {
-		h_g.x1,
-		h_g.y1,
-		host.x + (host.w / 2) - 1,
-		h_g.y2
-	};
-
-	haz_geometry h_r = {
-		host.x + (host.w / 2),
-		h_g.y1,
-		host.x + host.w - 1,
-		h_g.y2
-	};
-
-	act->col.l = (hrange && (a_l.x1 < h_r.x2) && (a_l.x1 > h_r.x1)) ? true : false;
-	act->col.r = (hrange && (a_r.x2 > h_l.x1) && (a_r.x2 < h_l.x2)) ? true : false;
-	act->col.t = (vrange && (a_t.y1 < h_b.y2) && (a_t.y1 > h_b.y1)) ? true : false;
-	act->col.b = (vrange && (a_b.y2 > h_t.y1) && (a_b.y2 < h_t.y2)) ? true : false;
-
-	if (act->col.l) {
-		act->g.x += h_r.x2 - a_l.x1;
-	}
-
-	if (act->col.t) {
-		int isect = h_r.y2 - a_l.y1;
-	}
-
-	if (act->col.r) {
-		int isect = a_r.x2 - h_l.x1;
-	}
-
-	if (act->col.b) {
-		int isect = a_r.y2 - h_l.y1;
-	}
+	if (ag.x1 > hg.x2 || ag.x2 < hg.x1 || ag.y1 > hg.y2 || ag.y2 < hg.y1) return false;
+	return true;
 }
 
-/*void haz_gameConMov(haz_actor *act) {
-	
-}*/
-
-void haz_eightDirMov(haz_actor *act) {
+void haz_eightDirMov(haz_actor *act, int xspd, int yspd) {
 	const uint8_t *keystate = SDL_GetKeyboardState(NULL);
 
-	int hdir = 0;
-	int vdir = 0;
+	if (!keystate[SDL_SCANCODE_LEFT] &&
+	    !keystate[SDL_SCANCODE_RIGHT]) act->spd.x = 0;
 
-	if (keystate[SDL_SCANCODE_LEFT]) hdir = -1;
-	if (keystate[SDL_SCANCODE_RIGHT]) hdir = 1;
-
-	if (keystate[SDL_SCANCODE_UP]) vdir = -1;
-	if (keystate[SDL_SCANCODE_DOWN]) vdir = 1;
-
-	switch (hdir) {
-		case -1:
-			if (act->vel.x > -act->spd.x) act->vel.x -= act->acc.x;
-			else act->vel.x = -act->spd.x;
-			if (act->col.l) act->vel.x = 0;
-			break;
-		case 0:
-			if (act->vel.x < 0) act->vel.x += act->acc.x;
-			else if (act->vel.x > 0) act->vel.x -= act->acc.x;
-			else act->vel.x = 0;
-			break;
-		case 1:
-			if (act->vel.x < act->spd.x) act->vel.x += act->acc.x;
-			else act->vel.x = act->spd.x;
-			if (act->col.r) act->vel.x = 0;
-			break;
-		default:
-			break;
+	if (keystate[SDL_SCANCODE_LEFT]) {
+		if (act->mov.l) act->spd.x = -xspd;
+		else {
+			act->spd.x = 0;
+			act->vel.x = 0;
+		}
 	}
 
-	switch (vdir) {
-		case -1:
-			if (act->vel.y > -act->spd.y) act->vel.y -= act->acc.y;
-			else act->vel.y = -act->spd.y;
-			if (act->col.t) act->vel.y = 0;
-			break;
-		case 0:
-			if (act->vel.y < 0) act->vel.y += act->acc.y;
-			else if (act->vel.y > 0) act->vel.y -= act->acc.y;
-			else act->vel.y = 0;
-			break;
-		case 1:
-			if (act->vel.y < act->spd.y) act->vel.y += act->acc.y;
-			else act->vel.y = act->spd.y;
-			if (act->col.b) act->vel.y = 0;
-			break;
-		default:
-			break;
+	if (keystate[SDL_SCANCODE_RIGHT]) {
+		if (act->mov.r) act->spd.x = xspd;
+		else {
+			act->spd.x = 0;
+			act->vel.x = 0;
+		}
 	}
+
+	if (!keystate[SDL_SCANCODE_UP] &&
+	    !keystate[SDL_SCANCODE_DOWN]) act->spd.y = 0;
+
+	if (keystate[SDL_SCANCODE_UP]) {
+		if (act->mov.u) act->spd.y = -yspd;
+		else {
+			act->spd.y = 0;
+			act->vel.y = 0;
+		}
+	}
+
+	if (keystate[SDL_SCANCODE_DOWN]) {
+		if (act->mov.d) act->spd.y = yspd;
+		else {
+			act->spd.y = 0;
+			act->vel.y = 0;
+		}
+	} 
 
 	haz_physics(act);
 }
 
 void haz_physics(haz_actor *act) {
+	if (act->vel.x < act->spd.x) act->vel.x += act->acc.x;
+	else if (act->vel.x > act->spd.x) act->vel.x -= act->acc.x;
+	else act->vel.x = act->spd.x;
+
+	if (act->vel.y < act->spd.y) act->vel.y += act->acc.y;
+	else if (act->vel.y > act->spd.y) act->vel.y -= act->acc.y;
+	else act->vel.y = act->spd.y;
+
 	act->g.x += act->vel.x;
 	act->g.y += act->vel.y;
 }

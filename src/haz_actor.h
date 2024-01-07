@@ -26,25 +26,16 @@
 #define MAPW 32
 #define MAPH 32
 
-typedef struct haz_collider {
-	bool l;
-	bool t;
-	bool r;
-	bool b;
-} haz_collider;
-
 typedef struct haz_actor {
-	SDL_Rect g;
-	SDL_Point acc;
-	SDL_Point vel;
-	SDL_Point spd;
-	haz_collider col;
+	SDL_Point acc; //Acceleration Rate
+	SDL_Point vel; //Velocity
+	SDL_Point spd; //Target Speed
 } haz_actor;
 
-void haz_eightDirMov(haz_actor *act);
-//void haz_gameConMov(haz_actor *act);
+void haz_eightDirMov(haz_actor *act, int xspd, int yspd);
 void haz_physics(haz_actor *act);
-void haz_collision(haz_actor *act, SDL_Rect host);
 void haz_containInRect(haz_actor *act, SDL_Rect host);
+
+bool haz_collision(haz_actor *act, SDL_Rect host);
 
 #endif //HAZ_ACTOR_H

@@ -33,6 +33,8 @@
 #define MAPW 32
 #define MAPH 32
 
+#define CLS "\x1b[1;1H\x1b[2J"
+
 typedef struct hazard_engine {
 	int initf;
 	SDL_Window *w;
@@ -47,12 +49,12 @@ typedef struct hazard_engine {
 	bool debug;
 } hazard_engine;
 
-typedef struct haz_geometry {
+typedef struct haz_geom {
 	int x1;
 	int y1;
 	int x2;
 	int y2;
-} haz_geometry;
+} haz_geom;
 
 int haz_init(int argc, char **argv);
 bool haz_live();
