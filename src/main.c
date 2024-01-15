@@ -15,7 +15,7 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "hazeng.h"
+#include "haz_engine.h"
 #include "cmake_h/cmake_macros.h"
 
 static struct option longopt[] = {

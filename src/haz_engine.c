@@ -15,7 +15,7 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "hazeng.h"
+#include "haz_engine.h"
 
 hazard_engine haz = {
 	(SDL_INIT_VIDEO || SDL_INIT_GAMECONTROLLER || SDL_INIT_TIMER),
@@ -26,6 +26,7 @@ hazard_engine haz = {
 	{0, 0, 800, 600},
 	SDL_WINDOW_RESIZABLE,
 	SDL_RENDERER_ACCELERATED,
+	IMG_INIT_PNG,
 	{16, 16},
 	true,
 	false
@@ -33,7 +34,9 @@ hazard_engine haz = {
 
 char level[MAPW][MAPH];
 SDL_Event e;
-SDL_GameController *main_gc = NULL;
+unsigned int end_t = 0;
+unsigned int init_t = 0;
+unsigned int delta_t = 0;
 
 int haz_init(int argc, char **argv) {
 	if (haz.debug) {
@@ -68,10 +71,20 @@ int haz_init(int argc, char **argv) {
 		return 1;
 	}
 
-	main_gc = haz_findController();
+	if (IMG_Init(haz.imgf) != haz.imgf) {
+		printf("\x1b[0;31mError in "
+			"IMG_Init():\x1b[0m "
+			"\x1b[0;31m%s\x1b[0m\n", IMG_GetError());
+		return 1;
+	}
 
 	if (haz_loadLevel("../src/lvl/test.txt") != 0) {
 		printf("\x1b[0;31mError in haz_loadLevel().\x1b[0m\n");
+		return 1;
+	}
+
+	if (haz_loadTextures(haz.r) != 0) {
+		printf("\x1b[0;31mError in haz_loadTextures().\x1b[0m\n");
 		return 1;
 	}
 
@@ -83,7 +96,7 @@ void haz_setDebug() { haz.debug = !haz.debug; }
 char haz_getTile(int x, int y) { return level[x][y]; }
 bool haz_live() { return haz.live; }
 bool haz_getDebug() { return haz.debug; }
-SDL_Rect haz_getWinGeom() { return haz.g; }
+SDL_Rect haz_getWinRect() { return haz.g; }
 SDL_Point get_tsize() { return haz.tsize; }
 
 SDL_GameController *haz_findController() {
@@ -100,7 +113,7 @@ SDL_GameController *haz_findController() {
 void haz_eng() {
 	if (SDL_PollEvent(&e)) haz_pollEv();
 
-	haz_render(30);
+	haz_render(60);
 }
 
 void haz_pollEv() {
@@ -113,18 +126,6 @@ void haz_pollEv() {
 			break;
 		case SDL_KEYDOWN:
 			_key = e.key.keysym.sym;
-			break;
-		case SDL_CONTROLLERDEVICEADDED:
-			if (main_gc == NULL)
-				main_gc = SDL_GameControllerOpen(e.cdevice.which);
-			break;
-		case SDL_CONTROLLERDEVICEREMOVED:
-			if (main_gc != NULL &&
-			    e.cdevice.which == SDL_JoystickInstanceID(
-			    SDL_GameControllerGetJoystick(main_gc))) {
-				SDL_GameControllerClose(main_gc);
-				main_gc = haz_findController();
-			}
 			break;
 		default:
 			break;
@@ -139,30 +140,63 @@ void haz_pollEv() {
 	}
 }
 
+haz_geometry haz_geomFromRect(SDL_Rect r) {
+	haz_geometry _g = {r.x, r.y, r.x + r.w - 1, r.y + r.h - 1};
+	return _g;
+}
+
+void haz_renderDrawGeom(haz_geometry geom) {
+	SDL_Rect g = {geom.x1, geom.y1, geom.x2 - geom.x1, geom.y2 - geom.y1};
+	SDL_RenderDrawRect(haz.r, &g);
+}
+
+void haz_renderFillGeom(haz_geometry geom) {
+	SDL_Rect g = {geom.x1, geom.y1, geom.x2 - geom.x1, geom.y2 - geom.y1};
+	SDL_RenderDrawRect(haz.r, &g);
+}
+
+double clock_millisec(clock_t ticks) {
+	return (ticks/(double) CLOCKS_PER_SEC) * 1000.0;
+}
+
 void haz_render(int fps) {
-	for (int i = 0; i < (fps * 1000000); i++) {
-		if (i == 0) {
-			SDL_SetRenderDrawColor(haz.r, 0x00, 0x00, 0x00, 0xFF);
-			SDL_RenderClear(haz.r);
+	end_t = SDL_GetTicks();
+	delta_t = end_t - init_t;
 
-			haz_renderLevel(haz.r);
+	if (delta_t > 1000/fps) {
+		if (haz_getDebug()) printf("FPS: %i\n", 1000 /delta_t);
 
-			SDL_RenderPresent(haz.r);
-		}
+		init_t = end_t;
+
+		SDL_SetRenderDrawColor(haz.r, 0x00, 0x00, 0x00, 0xFF);
+		SDL_RenderClear(haz.r);
+
+		haz_renderLevel(haz.r);
+
+		SDL_RenderPresent(haz.r);
+
+		delta_t = 0;
 	}
+}
+
+bool haz_collision(SDL_Rect guest, SDL_Rect host) {
+	haz_geometry ag = haz_geomFromRect(guest);
+	haz_geometry hg = haz_geomFromRect(host);
+
+	if (ag.x1 > hg.x2 || ag.x2 < hg.x1 || ag.y1 > hg.y2 || ag.y2 < hg.y1) return false;
+	return true;
 }
 
 void haz_quit() {
 	haz.live = false;
-
-	SDL_GameControllerClose(main_gc);
-	main_gc = NULL;
 
 	SDL_DestroyRenderer(haz.r);
 	haz.r = NULL;
 
 	SDL_DestroyWindow(haz.w);
 	haz.w = NULL;
+
+	IMG_Quit();
 
 	SDL_Quit();
 }

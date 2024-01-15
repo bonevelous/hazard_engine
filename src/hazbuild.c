@@ -15,7 +15,7 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "hazeng.h"
+#include "haz_engine.h"
 #include "hazbuild.h"
 
 SDL_Point tsize;
@@ -26,7 +26,7 @@ int haz_loadLevel(const char *filename) {
 	_file = fopen (filename, "r");
 	if (_file == NULL) {
 		printf("\x1b[1;31mError in fopen():\x1b[0m "
-			"\x1b[0;31m%s is corrupt or absent.\x1b[0m\n", filename);
+		       "\x1b[0;31m%s is corrupt or absent.\x1b[0m\n", filename);
 		return 1;
 	}
 
@@ -43,6 +43,18 @@ int haz_loadLevel(const char *filename) {
 
 	fclose(_file);
 	_file = NULL;
+
+	return 0;
+}
+
+int haz_loadTextures(SDL_Renderer *ren) {
+	/*harv.tex = IMG_LoadTexture(ren, "../src/img/harv.png");
+	if (harv.tex == NULL) {
+		printf("\x1b[0;31mError in "
+			"IMG_LoadTexture():\x1b[0m "
+			"\x1b[0;31m%s\x1b[0m\n", IMG_GetError());
+		return 1;
+	}*/
 
 	return 0;
 }

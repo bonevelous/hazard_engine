@@ -15,19 +15,22 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "hazeng.h"
+#include "haz_engine.h"
 #include "haz_actor.h"
 
 haz_actor harv = {
 	{0, 0, 16, 32},
-	{1, 1},
+	{0, 0},
 	{0, 0},
 	{8, 8},
-	{true, true, true, true}
+	{false, false, false, false},
+	NULL,
+	SDL_FLIP_NONE
 };
 
 SDL_Point tsize = {16, 16};
-SDL_Rect testrect = {64, 256, 48, 48};
+SDL_Rect testrect = {320, 256, 48, 48};
+SDL_Rect harvClip = {16, 0, 16, 32};
 
 int haz_loadLevel(const char *filename) {
 	FILE *_file = NULL;
@@ -35,7 +38,7 @@ int haz_loadLevel(const char *filename) {
 	_file = fopen (filename, "r");
 	if (_file == NULL) {
 		printf("\x1b[1;31mError in fopen():\x1b[0m "
-			"\x1b[0;31m%s is corrupt or absent.\x1b[0m\n", filename);
+		       "\x1b[0;31m%s is corrupt or absent.\x1b[0m\n", filename);
 		return 1;
 	}
 
@@ -61,6 +64,23 @@ int haz_loadLevel(const char *filename) {
 	return 0;
 }
 
+int haz_loadTextures(SDL_Renderer *ren) {
+	harv.tex = IMG_LoadTexture(ren, "../src/img/harv.png");
+	if (harv.tex == NULL) {
+		printf("\x1b[0;31mError in "
+			"IMG_LoadTexture():\x1b[0m "
+			"\x1b[0;31m%s\x1b[0m\n", IMG_GetError());
+		return 1;
+	}
+
+	return 0;
+}
+
+void haz_cleanTextures() {
+	SDL_DestroyTexture(harv.tex);
+	harv.tex = NULL;
+}
+
 void haz_renderLevel(SDL_Renderer *ren) {
 	SDL_Rect _out = {0, 0, tsize.x, tsize.y};
 
@@ -70,20 +90,18 @@ void haz_renderLevel(SDL_Renderer *ren) {
 			_out.y = (tsize.y * j);
 			SDL_SetRenderDrawColor(ren, 0xFF, 0xFF, 0xFF, 0xFF);
 
-			if (haz_getTile(j, i) == '#') {
-				SDL_RenderFillRect(ren, &_out);
-			}
+			if (haz_getTile(j, i) == '#') SDL_RenderFillRect(ren, &_out);
 		}
 	}
 
-	haz_solidWall(&harv, testrect);
-	haz_eightDirMov(&harv, 8, 8);
-	SDL_Rect winrect = haz_getWinGeom();
+	haz_eightDirMov(&harv);
+	haz_blockEntry(&harv, testrect);
+
+	SDL_Rect winrect = haz_getWinRect();
 	haz_containInRect(&harv, winrect);
 
 	SDL_SetRenderDrawColor(ren, 0x55, 0x55, 0xff, 0xFF);
 	SDL_RenderFillRect(ren, &testrect);
 
-	SDL_SetRenderDrawColor(ren, 0x00, 0xAA, 0x00, 0xFF);
-	SDL_RenderFillRect(ren, &harv.g);
+	SDL_RenderCopyEx(ren, harv.tex, &harvClip, &harv.g, 0, NULL, harv.flip);
 }

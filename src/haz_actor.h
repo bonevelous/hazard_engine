@@ -20,22 +20,33 @@
 
 #include <stdbool.h>
 #include <SDL.h>
+#include <SDL_image.h>
 
-#include "hazeng.h"
+#include "haz_engine.h"
 
 #define MAPW 32
 #define MAPH 32
 
+typedef struct haz_collider {
+	bool l;
+	bool t;
+	bool r;
+	bool b;
+} haz_collider;
+
 typedef struct haz_actor {
-	SDL_Point acc; //Acceleration Rate
+	SDL_Rect g; //Size and Position
 	SDL_Point vel; //Velocity
-	SDL_Point spd; //Target Speed
+	SDL_Point tspd; //Target Speed
+	SDL_Point mspd; //Max Speed
+	haz_collider col; //Collision
+	SDL_Texture *tex;
+	SDL_RendererFlip flip;
 } haz_actor;
 
-void haz_eightDirMov(haz_actor *act, int xspd, int yspd);
+void haz_eightDirMov(haz_actor *act);
 void haz_physics(haz_actor *act);
 void haz_containInRect(haz_actor *act, SDL_Rect host);
-
-bool haz_collision(haz_actor *act, SDL_Rect host);
+void haz_blockEntry(haz_actor *act, SDL_Rect host);
 
 #endif //HAZ_ACTOR_H

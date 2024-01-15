@@ -15,8 +15,8 @@
  *  along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef HAZENG_H
-#define HAZENG_H
+#ifndef HAZ_ENGINE_H
+#define HAZ_ENGINE_H
 
 #include <stdio.h>
 #include <stdbool.h>
@@ -29,6 +29,7 @@
 #include <getopt.h>
 
 #include <SDL.h>
+#include <SDL_image.h>
 
 #define MAPW 32
 #define MAPH 32
@@ -44,17 +45,18 @@ typedef struct hazard_engine {
 	SDL_Rect g;
 	char wf;
 	char rf;
+	int imgf;
 	SDL_Point tsize;
 	bool live;
 	bool debug;
 } hazard_engine;
 
-typedef struct haz_geom {
+typedef struct haz_geometry {
 	int x1;
 	int y1;
 	int x2;
 	int y2;
-} haz_geom;
+} haz_geometry;
 
 int haz_init(int argc, char **argv);
 bool haz_live();
@@ -62,19 +64,31 @@ void haz_eng();
 
 void haz_setDebug();
 bool haz_getDebug();
-SDL_Rect haz_getWinGeom();
+
+SDL_Rect haz_getWinRect();
+haz_geometry haz_geomFromRect(SDL_Rect r);
 
 SDL_GameController *haz_findController();
+
+int haz_loadTextures(SDL_Renderer *ren);
+void haz_cleanTextures();
+
 int haz_loadLevel(const char *filename);
 void haz_setTile(char _ch, int x, int y);
 char haz_getTile(int x, int y);
 
 void haz_pollEv();
 void haz_render(int fps);
+
+void haz_renderDrawGeom(haz_geometry geom);
+void haz_renderFillGeom(haz_geometry geom);
+
 void haz_renderLevel(SDL_Renderer *ren);
+
+bool haz_collision(SDL_Rect guest, SDL_Rect host);
 
 SDL_Point get_tsize();
 
 void haz_quit();
 
-#endif //HAZENG_H
+#endif //HAZ_ENGINE_H
