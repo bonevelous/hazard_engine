@@ -19,7 +19,7 @@
 #include "haz_actor.h"
 
 haz_actor harv = {
-	{0, 0, 16, 32},
+	{0, 0, 8, 16},
 	{false, false, false, false},
 	{0, 0},
 	{0, 0},
@@ -30,7 +30,10 @@ haz_actor harv = {
 };
 
 SDL_Point tsize = {16, 16};
-SDL_Rect harvClip = {16, 0, 16, 32};
+
+//SDL_Rect *harvAnims = NULL;
+
+SDL_Rect harvClip = {8, 16, 8, 16};
 SDL_Rect testRect = {80, 96, 64, 64};
 
 const int REN_SCALE_X = 2;
@@ -90,7 +93,7 @@ int haz_loadTextures(SDL_Renderer *ren) {
 		return 1;
 	}
 
-	harv.tex = IMG_LoadTexture(ren, "../src/img/harv.png");
+	harv.tex = IMG_LoadTexture(ren, "../src/img/harv_map_sprite.png");
 	if (harv.tex == NULL) {
 		printf("\x1b[0;31mError in "
 			"IMG_LoadTexture():\x1b[0m "
