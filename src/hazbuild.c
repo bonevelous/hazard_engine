@@ -32,8 +32,8 @@ int haz_loadLevel(const char *filename) {
 
 	tsize = get_tsize();
 
-	for (int i = 0; i < MAPW; i++) {
-		for (int j = 0; j < MAPH; j++) {
+	for (int i = 0; i < MAP_W; i++) {
+		for (int j = 0; j < MAP_H; j++) {
 			int ch = '\n';
 			while (ch == '\n') ch = fgetc(_file);
 
@@ -77,9 +77,9 @@ void hb_renderMap(SDL_Renderer *ren, char _ch, SDL_Rect *pos) {
 void haz_renderLevel(SDL_Renderer *ren) {
 	SDL_Rect _out = {0, 0, tsize.x, tsize.y};
 
-	for (int i = 0; i < MAPW; i++) {
+	for (int i = 0; i < MAP_W; i++) {
 		_out.x = (tsize.x * i);
-		for (int j = 0; j < MAPH; j++) {
+		for (int j = 0; j < MAP_H; j++) {
 			_out.y = (tsize.y * j);
 
 			hb_renderMap(ren, haz_getTile(j, i), &_out);

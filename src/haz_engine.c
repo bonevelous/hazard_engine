@@ -18,7 +18,7 @@
 #include "haz_engine.h"
 
 hazard_engine haz = {
-	(SDL_INIT_VIDEO || SDL_INIT_GAMECONTROLLER || SDL_INIT_TIMER),
+	(SDL_INIT_VIDEO || SDL_INIT_TIMER),
 	NULL,
 	NULL,
 	"Hazard Engine",
@@ -27,12 +27,12 @@ hazard_engine haz = {
 	SDL_WINDOW_RESIZABLE,
 	SDL_RENDERER_ACCELERATED,
 	IMG_INIT_PNG,
-	{16, 16},
+	{TILE_W, TILE_H},
 	true,
 	false
 };
 
-char level[MAPW][MAPH];
+char level[MAP_W][MAP_H];
 SDL_Event e;
 unsigned int end_t = 0;
 unsigned int init_t = 0;
@@ -94,12 +94,12 @@ int haz_init(int argc, char **argv) {
 void haz_setTile(char _ch, int x, int y) { level[x][y] = _ch; }
 void haz_setDebug() { haz.debug = !haz.debug; }
 char haz_getTile(int x, int y) { return level[x][y]; }
-bool haz_live() { return haz.live; }
-bool haz_getDebug() { return haz.debug; }
-SDL_Rect haz_getWinRect() { return haz.g; }
-SDL_Point get_tsize() { return haz.tsize; }
+bool haz_live(void) { return haz.live; }
+bool haz_getDebug(void) { return haz.debug; }
+SDL_Rect haz_getWinRect(void) { return haz.g; }
+SDL_Point get_tsize(void) { return haz.tsize; }
 
-SDL_GameController *haz_findController() {
+SDL_GameController *haz_findController(void) {
 	for (int i = 0; i < SDL_NumJoysticks(); i++) {
 		if (SDL_IsGameController(i)) {
 			printf("Found controller %i\n", i);
@@ -110,13 +110,13 @@ SDL_GameController *haz_findController() {
 	return NULL;
 }
 
-void haz_eng() {
+void haz_eng(void) {
 	if (SDL_PollEvent(&e)) haz_pollEv();
 
 	haz_render(60);
 }
 
-void haz_pollEv() {
+void haz_pollEv(void) {
 	int _key = 0;
 	int _condir = -1;
 
@@ -140,24 +140,9 @@ void haz_pollEv() {
 	}
 }
 
-haz_geometry haz_geomFromRect(SDL_Rect r) {
-	haz_geometry _g = {r.x, r.y, r.x + r.w - 1, r.y + r.h - 1};
-	return _g;
-}
-
-void haz_renderDrawGeom(haz_geometry geom) {
-	SDL_Rect g = {geom.x1, geom.y1, geom.x2 - geom.x1, geom.y2 - geom.y1};
-	SDL_RenderDrawRect(haz.r, &g);
-}
-
-void haz_renderFillGeom(haz_geometry geom) {
-	SDL_Rect g = {geom.x1, geom.y1, geom.x2 - geom.x1, geom.y2 - geom.y1};
-	SDL_RenderDrawRect(haz.r, &g);
-}
-
-double clock_millisec(clock_t ticks) {
+/*double clock_millisec(clock_t ticks) {
 	return (ticks/(double) CLOCKS_PER_SEC) * 1000.0;
-}
+}*/
 
 void haz_render(int fps) {
 	end_t = SDL_GetTicks();
@@ -168,9 +153,6 @@ void haz_render(int fps) {
 
 		init_t = end_t;
 
-		SDL_SetRenderDrawColor(haz.r, 0x00, 0x00, 0x00, 0xFF);
-		SDL_RenderClear(haz.r);
-
 		haz_renderLevel(haz.r);
 
 		SDL_RenderPresent(haz.r);
@@ -179,15 +161,19 @@ void haz_render(int fps) {
 	}
 }
 
-bool haz_collision(SDL_Rect guest, SDL_Rect host) {
-	haz_geometry ag = haz_geomFromRect(guest);
-	haz_geometry hg = haz_geomFromRect(host);
-
-	if (ag.x1 > hg.x2 || ag.x2 < hg.x1 || ag.y1 > hg.y2 || ag.y2 < hg.y1) return false;
-	return true;
+bool haz_hrange(SDL_Rect guest, SDL_Rect host) {
+	int guest_max_y = guest.y + guest.h;
+	int host_max_y = host.y + host.h;
+	return (!(guest.y > host_max_y) && !(guest_max_y < host.y));
 }
 
-void haz_quit() {
+bool haz_vrange(SDL_Rect guest, SDL_Rect host) {
+	int guest_max_x = guest.x + guest.h;
+	int host_max_x = host.x + host.h;
+	return (!(guest.x > host_max_x) && !(guest_max_x < host.x));
+}
+
+void haz_quit(void) {
 	haz.live = false;
 
 	SDL_DestroyRenderer(haz.r);

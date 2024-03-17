@@ -24,9 +24,6 @@
 
 #include "haz_engine.h"
 
-#define MAPW 32
-#define MAPH 32
-
 typedef struct haz_collider {
 	bool l;
 	bool t;
@@ -35,18 +32,21 @@ typedef struct haz_collider {
 } haz_collider;
 
 typedef struct haz_actor {
-	SDL_Rect g; //Size and Position
-	SDL_Point vel; //Velocity
-	SDL_Point tspd; //Target Speed
-	SDL_Point mspd; //Max Speed
+	SDL_Rect rect; //Size and Position
 	haz_collider col; //Collision
+	SDL_Point acc; //Acceleration
+	SDL_Point vel; //Velocity
+	SDL_Point mvel; //Max Velocity
+	SDL_Point spd; //Input Velocity (Speed)
 	SDL_Texture *tex;
 	SDL_RendererFlip flip;
 } haz_actor;
 
+void haz_update(haz_actor *act);
+
 void haz_eightDirMov(haz_actor *act);
-void haz_physics(haz_actor *act);
 void haz_containInRect(haz_actor *act, SDL_Rect host);
-void haz_blockEntry(haz_actor *act, SDL_Rect host);
+void haz_collision(haz_actor *act, SDL_Rect host);
+void haz_fixCorners(haz_actor *act, SDL_Rect host);
 
 #endif //HAZ_ACTOR_H

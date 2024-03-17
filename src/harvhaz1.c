@@ -20,17 +20,24 @@
 
 haz_actor harv = {
 	{0, 0, 16, 32},
-	{0, 0},
-	{0, 0},
-	{8, 8},
 	{false, false, false, false},
+	{0, 0},
+	{0, 0},
+	{4, 4},
+	{0, 0},
 	NULL,
 	SDL_FLIP_NONE
 };
 
 SDL_Point tsize = {16, 16};
-SDL_Rect testrect = {320, 256, 48, 48};
 SDL_Rect harvClip = {16, 0, 16, 32};
+SDL_Rect testRect = {80, 96, 64, 64};
+
+const int REN_SCALE_X = 2;
+const int REN_SCALE_Y = 2;
+
+SDL_Texture *renTex = NULL;
+SDL_Rect renRect = {0, 0, 800, 600};
 
 int haz_loadLevel(const char *filename) {
 	FILE *_file = NULL;
@@ -44,13 +51,13 @@ int haz_loadLevel(const char *filename) {
 
 	tsize = get_tsize();
 
-	for (int i = 0; i < MAPW; i++) {
-		for (int j = 0; j < MAPH; j++) {
+	for (int i = 0; i < MAP_W; i++) {
+		for (int j = 0; j < MAP_H; j++) {
 			int ch = '\n';
 			while (ch == '\n') ch = fgetc(_file);
 			if (ch == 'O') {
-				harv.g.x = tsize.x * j;
-				harv.g.y = tsize.y * i - 16;
+				harv.rect.x = tsize.x * j;
+				harv.rect.y = tsize.y * i - (harvClip.h / 2);
 				ch = ' ';
 			}
 
@@ -65,6 +72,24 @@ int haz_loadLevel(const char *filename) {
 }
 
 int haz_loadTextures(SDL_Renderer *ren) {
+	SDL_Rect tmpRect = haz_getWinRect();
+	renRect.w = tmpRect.w / REN_SCALE_X;
+	renRect.h = tmpRect.h / REN_SCALE_Y;
+
+	renTex = SDL_CreateTexture(
+	         ren,
+                 SDL_PIXELFORMAT_RGBA4444,
+	         SDL_TEXTUREACCESS_TARGET,
+	         renRect.w,
+	         renRect.h);
+
+	if (renTex == NULL) {
+		printf("\x1b[0;31mError in "
+			"SDL_CreateTexture():\x1b[0m "
+			"\x1b[0;31m%s\x1b[0m\n", SDL_GetError());
+		return 1;
+	}
+
 	harv.tex = IMG_LoadTexture(ren, "../src/img/harv.png");
 	if (harv.tex == NULL) {
 		printf("\x1b[0;31mError in "
@@ -79,14 +104,22 @@ int haz_loadTextures(SDL_Renderer *ren) {
 void haz_cleanTextures() {
 	SDL_DestroyTexture(harv.tex);
 	harv.tex = NULL;
+
+	SDL_DestroyTexture(renTex);
+	renTex = NULL;
 }
 
 void haz_renderLevel(SDL_Renderer *ren) {
+	SDL_SetRenderTarget(ren, renTex);
+
+	SDL_SetRenderDrawColor(ren, 0x00, 0x00, 0x00, 0xFF);
+	SDL_RenderClear(ren);
+
 	SDL_Rect _out = {0, 0, tsize.x, tsize.y};
 
-	for (int i = 0; i < MAPW; i++) {
+	for (int i = 0; i < MAP_W; i++) {
 		_out.x = (tsize.x * i);
-		for (int j = 0; j < MAPH; j++) {
+		for (int j = 0; j < MAP_H; j++) {
 			_out.y = (tsize.y * j);
 			SDL_SetRenderDrawColor(ren, 0xFF, 0xFF, 0xFF, 0xFF);
 
@@ -94,14 +127,19 @@ void haz_renderLevel(SDL_Renderer *ren) {
 		}
 	}
 
+	haz_update(&harv);
+	haz_collision(&harv, testRect);
 	haz_eightDirMov(&harv);
-	haz_blockEntry(&harv, testrect);
 
 	SDL_Rect winrect = haz_getWinRect();
-	haz_containInRect(&harv, winrect);
+	haz_containInRect(&harv, renRect);
 
-	SDL_SetRenderDrawColor(ren, 0x55, 0x55, 0xff, 0xFF);
-	SDL_RenderFillRect(ren, &testrect);
+	SDL_RenderCopyEx(ren, harv.tex, &harvClip, &harv.rect, 0, NULL, harv.flip);
 
-	SDL_RenderCopyEx(ren, harv.tex, &harvClip, &harv.g, 0, NULL, harv.flip);
+	SDL_SetRenderDrawColor(ren, 0x55, 0x55, 0xff, 0xff);
+	SDL_RenderFillRect(ren, &testRect);
+
+	SDL_SetRenderTarget(ren, NULL);
+
+	SDL_RenderCopy(ren, renTex, NULL, NULL);
 }

@@ -21,143 +21,149 @@
 void haz_eightDirMov(haz_actor *act) {
 	const uint8_t *keystate = SDL_GetKeyboardState(NULL);
 
-	if (!keystate[SDL_SCANCODE_LEFT] &&
-	    !keystate[SDL_SCANCODE_RIGHT]) act->tspd.x = 0;
+	bool hmov = (keystate[SDL_SCANCODE_LEFT] ^ keystate[SDL_SCANCODE_RIGHT]);
+	bool vmov = (keystate[SDL_SCANCODE_UP] ^ keystate[SDL_SCANCODE_DOWN]);
 
-	if (keystate[SDL_SCANCODE_LEFT] &&
-	    keystate[SDL_SCANCODE_RIGHT]) act->tspd.x = 0;
+	if (!hmov) act->spd.x = 0;
+	else {
+		if (keystate[SDL_SCANCODE_LEFT]) {
+			if (!act->col.l) act->spd.x = -act->mvel.x;
+			else act->spd.x = 0;
 
-	if (keystate[SDL_SCANCODE_LEFT]) {
-		if (!act->col.l) act->tspd.x = -act->mspd.x;
-		else act->tspd.x = 0;
+			act->flip = SDL_FLIP_HORIZONTAL;
+		}
 
-		act->flip = SDL_FLIP_HORIZONTAL;
+		if (keystate[SDL_SCANCODE_RIGHT]) {
+			if (!act->col.r) act->spd.x = act->mvel.x;
+			else act->spd.x = 0;
+
+			act->flip = SDL_FLIP_NONE;
+		}
 	}
 
-	if (keystate[SDL_SCANCODE_RIGHT]) {
-		if (!act->col.r) act->tspd.x = act->mspd.x;
-		else act->tspd.x = 0;
-		act->flip = SDL_FLIP_NONE;
-	}
-
-	if (!keystate[SDL_SCANCODE_UP] &&
-	    !keystate[SDL_SCANCODE_DOWN]) act->tspd.y = 0;
-
-	if (keystate[SDL_SCANCODE_UP] &&
-	    keystate[SDL_SCANCODE_DOWN]) act->tspd.y = 0;
-
-	if (keystate[SDL_SCANCODE_UP]) {
-		if (!act->col.t) act->tspd.y = -act->mspd.y;
-		else act->tspd.y = 0;
-	}
-
-	if (keystate[SDL_SCANCODE_DOWN]) {
-		if (!act->col.b) act->tspd.y = act->mspd.y;
-		else act->tspd.y = 0;
-	}
-
-	haz_physics(act);
-}
-
-void haz_blockEntry(haz_actor *act, SDL_Rect host) {
-	const uint8_t *keystate = SDL_GetKeyboardState(NULL);
-
-	haz_geometry ag = {
-		act->g.x,
-		act->g.y,
-		act->g.x + act->g.w - 1,
-		act->g.y + act->g.h - 1
-	};
-
-	haz_geometry hg = {
-		host.x,
-		host.y,
-		host.x + host.w - 1,
-		host.y + host.h - 1
-	};
-
-	bool hrange = (ag.y1 > hg.y2 || ag.y2 < hg.y1) ? false : true;
-	bool vrange = (ag.x1 > hg.x2 || ag.x2 < hg.x1) ? false : true;
-
-	int nxp = 0;
-	int nyp = 0;
-	
-	if (keystate[SDL_SCANCODE_LEFT]) {
-		nxp = (-act->mspd.x / 2);
-
-		act->col.l = (ag.x1 + nxp <= hg.x2 &&
-		              ag.x1 >= hg.x2 &&
-		              hrange) ? true : false;
-
-		if (act->col.l) act->g.x = host.x + host.w;
-	}
-
-	if (keystate[SDL_SCANCODE_RIGHT]) {
-		nxp = (act->mspd.x / 2);
-
-		act->col.r = (ag.x2 + nxp >= hg.x1 &&
-		              ag.x2 <= hg.x1 &&
-		              hrange) ? true : false;
-
-		if (act->col.r) act->g.x = host.x - act->g.w;
-	}
-	
-	if (keystate[SDL_SCANCODE_UP] ^ keystate[SDL_SCANCODE_DOWN]) {
+	if (!vmov) act->spd.y = 0;
+	else {
 		if (keystate[SDL_SCANCODE_UP]) {
-			nyp = (-act->mspd.y / 2);
-
-			act->col.t = (ag.y1 + nyp <= hg.y2 &&
-			              ag.y1 >= hg.y2 &&
-			              vrange) ? true : false;
-
-			if (act->col.t) act->g.y = host.y + host.h;
+			if (!act->col.t) act->spd.y = -act->mvel.y;
+			else act->spd.y = 0;
 		}
 
 		if (keystate[SDL_SCANCODE_DOWN]) {
-			nyp = (act->mspd.y / 2);
-
-			act->col.b = (ag.y2 + nyp >= hg.y1 &&
-			              ag.y2 <= hg.y1 &&
-			              vrange) ? true : false;
-
-			if (act->col.b) act->g.y = host.y - act->g.h;
+			if (!act->col.b) act->spd.y = act->mvel.y;
+			else act->spd.y = 0;
 		}
 	}
 }
 
-void haz_physics(haz_actor *act) {
-	act->vel.x = act->tspd.x;
-	act->vel.y = act->tspd.y;
+void haz_update(haz_actor *act) {
+	act->vel.x = act->spd.x;
+	act->vel.y = act->spd.y;
 
-	act->g.x += act->vel.x;
-	act->g.y += act->vel.y;
+	act->rect.x += act->vel.x;
+	act->rect.y += act->vel.y;
 }
 
 void haz_containInRect(haz_actor *act, SDL_Rect host) {
-	int max_x = (host.x + host.w) - act->g.w;
-	int max_y = (host.y + host.h) - act->g.h;
+	int max_x = (host.x + host.w) - act->rect.w;
+	int max_y = (host.y + host.h) - act->rect.h;
 
-	if (act->g.x < host.x) {
-		act->g.x = host.x;
-		act->tspd.x = 0;
+	if (act->rect.x < host.x) {
+		act->rect.x = host.x;
+		act->spd.x = 0;
 		act->vel.x = 0;
 	}
 
-	if (act->g.x > max_x) {
-		act->g.x = max_x;
-		act->tspd.x = 0;
+	if (act->rect.x > max_x) {
+		act->rect.x = max_x;
+		act->spd.x = 0;
 		act->vel.x = 0;
 	}
 
-	if (act->g.y < host.y) {
-		act->g.y = host.y;
-		act->tspd.y = 0;
+	if (act->rect.y < host.y) {
+		act->rect.y = host.y;
+		act->spd.y = 0;
 		act->vel.y = 0;
 	}
 
-	if (act->g.y > max_y) {
-		act->g.y = max_y;
-		act->tspd.y = 0;
+	if (act->rect.y > max_y) {
+		act->rect.y = max_y;
+		act->spd.y = 0;
 		act->vel.y = 0;
 	}
 }
+
+void haz_collision(haz_actor *act, SDL_Rect host) {
+	if (!haz_hrange(act->rect, host)) {
+		act->col.l = false;
+		act->col.r = false;
+	}
+	else {
+		if (act->rect.x == host.x + host.w) {
+			act->col.l = true;
+		}
+		else act->col.l = false;
+
+		if (act->rect.x == host.x - act->rect.w) {
+			act->col.r = true;
+		}
+		else act->col.r = false;
+	}
+
+	if (!haz_vrange(act->rect, host)) {
+		act->col.t = false;
+		act->col.b = false;
+	}
+	else {
+		if (act->rect.y == host.y + host.h) {
+			act->col.t = true;
+		}
+		else act->col.t = false;
+
+		if (act->rect.y == host.y - act->rect.h) {
+			act->col.b = true;
+		}
+		else act->col.b = false;
+	}
+
+	haz_fixCorners(act, host);
+}
+
+void haz_fixCorners(haz_actor *act, SDL_Rect host) {
+	const uint8_t *keystate = SDL_GetKeyboardState(NULL);
+
+	bool corn1 = false;
+	bool corn2 = false;
+	bool corn3 = false;
+	bool corn4 = false;
+
+	int min_act_x = host.x - act->rect.w;
+	int min_act_y = host.y - act->rect.h;
+	int max_act_x = host.x + host.w;
+	int max_act_y = host.y + host.h;
+
+	corn1 = (act->rect.x == min_act_x && act->rect.y == min_act_y);
+	corn2 = (act->rect.x == max_act_x && act->rect.y == min_act_y);
+	corn3 = (act->rect.x == min_act_x && act->rect.y == max_act_y);
+	corn4 = (act->rect.x == max_act_x && act->rect.y == max_act_y);
+
+	if (corn1 && (keystate[SDL_SCANCODE_RIGHT] ^ keystate[SDL_SCANCODE_DOWN])) {
+		if (keystate[SDL_SCANCODE_RIGHT]) act->col.r = false;
+		if (keystate[SDL_SCANCODE_DOWN]) act->col.b = false;
+	}
+
+	if (corn2 && (keystate[SDL_SCANCODE_LEFT] ^ keystate[SDL_SCANCODE_DOWN])) {
+		if (keystate[SDL_SCANCODE_LEFT]) act->col.l = false;
+		if (keystate[SDL_SCANCODE_DOWN]) act->col.b = false;
+	}
+
+	if (corn3 && (keystate[SDL_SCANCODE_RIGHT] ^ keystate[SDL_SCANCODE_UP])) {
+		if (keystate[SDL_SCANCODE_RIGHT]) act->col.r = false;
+		if (keystate[SDL_SCANCODE_UP]) act->col.t = false;
+	}
+
+	if (corn4 && (keystate[SDL_SCANCODE_LEFT] ^ keystate[SDL_SCANCODE_UP])) {
+		if (keystate[SDL_SCANCODE_LEFT]) act->col.l = false;
+		if (keystate[SDL_SCANCODE_UP]) act->col.t = false;
+	}
+}
+
