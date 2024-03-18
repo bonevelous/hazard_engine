@@ -18,7 +18,7 @@
 #include "haz_engine.h"
 #include "haz_actor.h"
 
-void haz_eightDirMov(haz_actor *act) {
+void haz_eightDirMov(haz_actor *act, int *aframe) {
 	const uint8_t *keystate = SDL_GetKeyboardState(NULL);
 
 	bool hmov = (keystate[SDL_SCANCODE_LEFT] ^ keystate[SDL_SCANCODE_RIGHT]);
@@ -26,6 +26,7 @@ void haz_eightDirMov(haz_actor *act) {
 
 	if (!hmov) act->spd.x = 0;
 	else {
+		*aframe = 4;
 		if (keystate[SDL_SCANCODE_LEFT]) {
 			if (!act->col.l) act->spd.x = -act->mvel.x;
 			else act->spd.x = 0;
@@ -44,11 +45,13 @@ void haz_eightDirMov(haz_actor *act) {
 	if (!vmov) act->spd.y = 0;
 	else {
 		if (keystate[SDL_SCANCODE_UP]) {
+			*aframe = 7;
 			if (!act->col.t) act->spd.y = -act->mvel.y;
 			else act->spd.y = 0;
 		}
 
 		if (keystate[SDL_SCANCODE_DOWN]) {
+			*aframe = 1;
 			if (!act->col.b) act->spd.y = act->mvel.y;
 			else act->spd.y = 0;
 		}

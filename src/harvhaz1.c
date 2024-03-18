@@ -31,9 +31,20 @@ haz_actor harv = {
 
 SDL_Point tsize = {16, 16};
 
-//SDL_Rect *harvAnims = NULL;
+SDL_Rect harvAnims[9] = {
+	{0, 0, 8, 16},
+	{8, 0, 8, 16},
+	{16, 0, 8, 16},
+	{0, 16, 8, 16},
+	{8, 16, 8, 16},
+	{16, 16, 8, 16},
+	{0, 32, 8, 16},
+	{8, 32, 8, 16},
+	{16, 32, 8, 16}
+};
 
-SDL_Rect harvClip = {8, 16, 8, 16};
+int harv_aframe = 1;
+
 SDL_Rect testRect = {80, 96, 64, 64};
 
 const int REN_SCALE_X = 2;
@@ -60,7 +71,7 @@ int haz_loadLevel(const char *filename) {
 			while (ch == '\n') ch = fgetc(_file);
 			if (ch == 'O') {
 				harv.rect.x = tsize.x * j;
-				harv.rect.y = tsize.y * i - (harvClip.h / 2);
+				harv.rect.y = tsize.y * i - (harvAnims[0].h / 2);
 				ch = ' ';
 			}
 
@@ -93,7 +104,7 @@ int haz_loadTextures(SDL_Renderer *ren) {
 		return 1;
 	}
 
-	harv.tex = IMG_LoadTexture(ren, "../src/img/harv_map_sprite.png");
+	harv.tex = IMG_LoadTexture(ren, "../src/img/harv_map.png");
 	if (harv.tex == NULL) {
 		printf("\x1b[0;31mError in "
 			"IMG_LoadTexture():\x1b[0m "
@@ -132,12 +143,18 @@ void haz_renderLevel(SDL_Renderer *ren) {
 
 	haz_update(&harv);
 	haz_collision(&harv, testRect);
-	haz_eightDirMov(&harv);
+	haz_eightDirMov(&harv, &harv_aframe);
 
 	SDL_Rect winrect = haz_getWinRect();
 	haz_containInRect(&harv, renRect);
 
-	SDL_RenderCopyEx(ren, harv.tex, &harvClip, &harv.rect, 0, NULL, harv.flip);
+	SDL_RenderCopyEx(ren,
+	                 harv.tex,
+	                 &harvAnims[harv_aframe],
+	                 &harv.rect,
+                         0,
+	                 NULL,
+	                 harv.flip);
 
 	SDL_SetRenderDrawColor(ren, 0x55, 0x55, 0xff, 0xff);
 	SDL_RenderFillRect(ren, &testRect);

@@ -168,8 +168,8 @@ bool haz_hrange(SDL_Rect guest, SDL_Rect host) {
 }
 
 bool haz_vrange(SDL_Rect guest, SDL_Rect host) {
-	int guest_max_x = guest.x + guest.h;
-	int host_max_x = host.x + host.h;
+	int guest_max_x = guest.x + guest.w;
+	int host_max_x = host.x + host.w;
 	return (!(guest.x > host_max_x) && !(guest_max_x < host.x));
 }
 
