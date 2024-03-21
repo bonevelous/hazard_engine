@@ -71,6 +71,7 @@ void haz_setTile(char _ch, int x, int y);
 char haz_getTile(int x, int y);
 
 void haz_pollEv(void);
+void haz_animate(int *animation, int *input, int *curFrame, int speed);
 void haz_render(int fps);
 
 void haz_renderLevel(SDL_Renderer *ren);

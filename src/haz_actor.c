@@ -18,26 +18,26 @@
 #include "haz_engine.h"
 #include "haz_actor.h"
 
-void haz_eightDirMov(haz_actor *act, int *aframe) {
+void haz_eightDirMov(haz_actor *act, int *input, int *refFrame, int animspeed) {
 	const uint8_t *keystate = SDL_GetKeyboardState(NULL);
 
 	bool hmov = (keystate[SDL_SCANCODE_LEFT] ^ keystate[SDL_SCANCODE_RIGHT]);
 	bool vmov = (keystate[SDL_SCANCODE_UP] ^ keystate[SDL_SCANCODE_DOWN]);
 
+	int anim_d[4] = {1, 0, 1, 2};
+	int anim_u[4] = {7, 6, 7, 8};
+	int anim_h[4] = {4, 3, 4, 5};
+
 	if (!hmov) act->spd.x = 0;
 	else {
-		*aframe = 4;
+		if (!vmov) haz_animate(anim_h, input, refFrame, animspeed);
 		if (keystate[SDL_SCANCODE_LEFT]) {
-			if (!act->col.l) act->spd.x = -act->mvel.x;
-			else act->spd.x = 0;
-
+			act->spd.x = -act->mvel.x;
 			act->flip = SDL_FLIP_HORIZONTAL;
 		}
 
 		if (keystate[SDL_SCANCODE_RIGHT]) {
-			if (!act->col.r) act->spd.x = act->mvel.x;
-			else act->spd.x = 0;
-
+			act->spd.x = act->mvel.x;
 			act->flip = SDL_FLIP_NONE;
 		}
 	}
@@ -45,22 +45,25 @@ void haz_eightDirMov(haz_actor *act, int *aframe) {
 	if (!vmov) act->spd.y = 0;
 	else {
 		if (keystate[SDL_SCANCODE_UP]) {
-			*aframe = 7;
-			if (!act->col.t) act->spd.y = -act->mvel.y;
-			else act->spd.y = 0;
+			haz_animate(anim_u, input, refFrame, animspeed);
+			act->spd.y = -act->mvel.y;
 		}
 
 		if (keystate[SDL_SCANCODE_DOWN]) {
-			*aframe = 1;
-			if (!act->col.b) act->spd.y = act->mvel.y;
-			else act->spd.y = 0;
+			haz_animate(anim_d, input, refFrame, animspeed);
+			act->spd.y = act->mvel.y;
 		}
 	}
 }
 
 void haz_update(haz_actor *act) {
-	act->vel.x = act->spd.x;
-	act->vel.y = act->spd.y;
+	if ((!act->col.l ^ act->spd.x >= 0) || (!act->col.r ^ act->spd.x <= 0)) {
+		act->vel.x = act->spd.x;
+	} else act->vel.x = 0;
+
+	if ((!act->col.t ^ act->spd.y >= 0) || (!act->col.b ^ act->spd.y <= 0)) {
+		act->vel.y = act->spd.y;
+	} else act->vel.y = 0;
 
 	act->rect.x += act->vel.x;
 	act->rect.y += act->vel.y;
@@ -132,8 +135,6 @@ void haz_collision(haz_actor *act, SDL_Rect host) {
 }
 
 void haz_fixCorners(haz_actor *act, SDL_Rect host) {
-	const uint8_t *keystate = SDL_GetKeyboardState(NULL);
-
 	bool corn1 = false;
 	bool corn2 = false;
 	bool corn3 = false;
@@ -149,24 +150,24 @@ void haz_fixCorners(haz_actor *act, SDL_Rect host) {
 	corn3 = (act->rect.x == min_act_x && act->rect.y == max_act_y);
 	corn4 = (act->rect.x == max_act_x && act->rect.y == max_act_y);
 
-	if (corn1 && (keystate[SDL_SCANCODE_RIGHT] ^ keystate[SDL_SCANCODE_DOWN])) {
-		if (keystate[SDL_SCANCODE_RIGHT]) act->col.r = false;
-		if (keystate[SDL_SCANCODE_DOWN]) act->col.b = false;
+	if (corn1 && (act->spd.x > 0 ^ act->spd.y > 0)) {
+		if (act->spd.x > 0) act->col.r = false;
+		if (act->spd.y > 0) act->col.b = false;
 	}
 
-	if (corn2 && (keystate[SDL_SCANCODE_LEFT] ^ keystate[SDL_SCANCODE_DOWN])) {
-		if (keystate[SDL_SCANCODE_LEFT]) act->col.l = false;
-		if (keystate[SDL_SCANCODE_DOWN]) act->col.b = false;
+	if (corn2 && (act->spd.x < 0 ^ act->spd.y > 0)) {
+		if (act->spd.x < 0) act->col.l = false;
+		if (act->spd.y > 0) act->col.b = false;
 	}
 
-	if (corn3 && (keystate[SDL_SCANCODE_RIGHT] ^ keystate[SDL_SCANCODE_UP])) {
-		if (keystate[SDL_SCANCODE_RIGHT]) act->col.r = false;
-		if (keystate[SDL_SCANCODE_UP]) act->col.t = false;
+	if (corn3 && (act->spd.x > 0 ^ act->spd.y < 0)) {
+		if (act->spd.x > 0) act->col.r = false;
+		if (act->spd.y < 0) act->col.t = false;
 	}
 
-	if (corn4 && (keystate[SDL_SCANCODE_LEFT] ^ keystate[SDL_SCANCODE_UP])) {
-		if (keystate[SDL_SCANCODE_LEFT]) act->col.l = false;
-		if (keystate[SDL_SCANCODE_UP]) act->col.t = false;
+	if (corn4 && (act->spd.x < 0 ^ act->spd.y < 0)) {
+		if (act->spd.x < 0) act->col.l = false;
+		if (act->spd.y < 0) act->col.t = false;
 	}
 }
 

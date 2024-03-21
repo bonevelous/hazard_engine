@@ -144,6 +144,18 @@ void haz_pollEv(void) {
 	return (ticks/(double) CLOCKS_PER_SEC) * 1000.0;
 }*/
 
+
+void haz_animate(int *animation, int *input, int *curFrame, int speed) {
+	int frames = sizeof(animation) / sizeof(int);
+
+	if (end_t % speed == 0) {
+		if (*curFrame <= frames) *curFrame += 1;
+		else *curFrame = 0;
+	}
+
+	*input = animation[*curFrame];
+}
+
 void haz_render(int fps) {
 	end_t = SDL_GetTicks();
 	delta_t = end_t - init_t;

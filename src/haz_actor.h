@@ -44,7 +44,7 @@ typedef struct haz_actor {
 
 void haz_update(haz_actor *act);
 
-void haz_eightDirMov(haz_actor *act, int *aframe);
+void haz_eightDirMov(haz_actor *act, int *input, int *refFrame, int animspeed);
 void haz_containInRect(haz_actor *act, SDL_Rect host);
 void haz_collision(haz_actor *act, SDL_Rect host);
 void haz_fixCorners(haz_actor *act, SDL_Rect host);

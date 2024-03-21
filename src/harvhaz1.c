@@ -29,6 +29,8 @@ haz_actor harv = {
 	SDL_FLIP_NONE
 };
 
+SDL_Texture *tileset = NULL;
+
 SDL_Point tsize = {16, 16};
 
 SDL_Rect harvAnims[9] = {
@@ -44,6 +46,7 @@ SDL_Rect harvAnims[9] = {
 };
 
 int harv_aframe = 1;
+int harv_bframe = 0;
 
 SDL_Rect testRect = {80, 96, 64, 64};
 
@@ -104,6 +107,14 @@ int haz_loadTextures(SDL_Renderer *ren) {
 		return 1;
 	}
 
+	tileset = IMG_LoadTexture(ren, "../src/img/tiles.png");
+	if (tileset == NULL) {
+		printf("\x1b[0;31mError in "
+			"IMG_LoadTexture():\x1b[0m "
+			"\x1b[0;31m%s\x1b[0m\n", IMG_GetError());
+		return 1;
+	}
+
 	harv.tex = IMG_LoadTexture(ren, "../src/img/harv_map.png");
 	if (harv.tex == NULL) {
 		printf("\x1b[0;31mError in "
@@ -118,6 +129,9 @@ int haz_loadTextures(SDL_Renderer *ren) {
 void haz_cleanTextures() {
 	SDL_DestroyTexture(harv.tex);
 	harv.tex = NULL;
+
+	SDL_DestroyTexture(tileset);
+	tileset = NULL;
 
 	SDL_DestroyTexture(renTex);
 	renTex = NULL;
@@ -137,13 +151,14 @@ void haz_renderLevel(SDL_Renderer *ren) {
 			_out.y = (tsize.y * j);
 			SDL_SetRenderDrawColor(ren, 0xFF, 0xFF, 0xFF, 0xFF);
 
-			if (haz_getTile(j, i) == '#') SDL_RenderFillRect(ren, &_out);
+			if (haz_getTile(j, i) == '#')
+				SDL_RenderCopy(ren, tileset, NULL, &_out);
 		}
 	}
 
 	haz_update(&harv);
 	haz_collision(&harv, testRect);
-	haz_eightDirMov(&harv, &harv_aframe);
+	haz_eightDirMov(&harv, &harv_aframe, &harv_bframe, 8);
 
 	SDL_Rect winrect = haz_getWinRect();
 	haz_containInRect(&harv, renRect);
